@@ -1,0 +1,181 @@
+{
+  "data": {
+    "serialNoIndex": "1",
+    "linkIndex": "0",
+    "name": "001:Claim Adjudication",
+    "description": "Claim Adjudication",
+    "etaStatus": "On Target",
+    "category": "CC000",
+    "connectionType": "IP000",
+    "details": {
+      "Process": "001:Claim Adjudication",
+      "Group": "Claim Adjudication",
+      "Owner": "JB",
+      "Hosted Name": "Business Process",
+      "Provider": "NA",
+      "Consumer": "NA",
+      "Integration Pattern": "Group",
+      "Confidence Factor": "Group",
+      "Count of Invocations": "0",
+      "DB Calls (ms)": "0",
+      "Logic (ms)": "0",
+      "Rules (ms)": "0",
+      "Latency (ms)": "0",
+      "Time of Function/Call": "4334",
+      "Total Process Time": "0",
+      "Total Process Path Length": "4334",
+      "Process NFR": "3000",
+      "Total Process NFR": "0",
+      "Total Process Path Length NFR": "4743"
+    },
+    "children": [
+      {
+        "serialNoIndex": "2",
+        "linkIndex": "1",
+        "name": "002:RTIS",
+        "description": "*RTIS",
+        "etaStatus": "On Target",
+        "category": "CC004",
+        "connectionType": "IP010",
+        "details": {
+          "Process": "002:RTIS",
+          "Group": "RTIS",
+          "Owner": "Alak",
+          "Hosted Name": "Legacy BC",
+          "Provider": "Claims-Legacy",
+          "Consumer": "Claims-Legacy",
+          "Integration Pattern": "BC Internal",
+          "Confidence Factor": "Group",
+          "Count of Invocations": "1",
+          "DB Calls (ms)": "0",
+          "Logic (ms)": "0",
+          "Rules (ms)": "0",
+          "Latency (ms)": "0",
+          "Time of Function/Call": "4334",
+          "Total Process Time": "0",
+          "Total Process Path Length": "4334",
+          "Process NFR": "0",
+          "Total Process NFR": "0",
+          "Total Process Path Length NFR": "4743"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "etaStatus": {
+      "name": "On Target or off Target",
+      "items": {
+        "Off Target": {
+          "color": "CRIMSON",
+          "description": "Off Target"
+        },
+        "Not Defined": {
+          "color": "GOLD",
+          "description": "Not Defined"
+        },
+        "On Target": {
+          "color": "YELLOWGREEN",
+          "description": "On Target"
+        }
+      }
+    },
+    "category": {
+      "name": "Hosted Platform / Owner",
+      "items": {
+        "CC009": {
+          "color": "GOLD",
+          "description": "Not Defined"
+        },
+        "CC008": {
+          "color": "ROSYBROWN",
+          "description": "External"
+        },
+        "CC007": {
+          "color": "CHOCOLATE",
+          "description": "Cross-Portfolio"
+        },
+        "CC006": {
+          "color": "POWDERBLUE",
+          "description": "Cross-Product"
+        },
+        "CC005": {
+          "color": "MEDIUMSLATEBLUE",
+          "description": "Legacy Modernized"
+        },
+        "CC004": {
+          "color": "DARKKHAKI",
+          "description": "Legacy BC"
+        },
+        "CC003": {
+          "color": "TURQUOISE",
+          "description": "Mule API Gateway"
+        },
+        "CC002": {
+          "color": "DODGERBLUE",
+          "description": "Mule ESB"
+        },
+        "CC001": {
+          "color": "LAWNGREEN",
+          "description": "PCF"
+        },
+        "CC000": {
+          "color": "MAGENTA",
+          "description": "Business Process"
+        }
+      }
+    },
+    "connectionType": {
+      "name": "Integration Patterns",
+      "items": {
+        "IP000": {
+          "color": "DEEPSKYBLUE",
+          "description": "Group"
+        },
+        "IP010": {
+          "color": "LIGHTSLATEGRAY",
+          "description": "BC Internal"
+        },
+        "IP002": {
+          "color": "BLUEVIOLET",
+          "description": "REST Service - MQ "
+        },
+        "NA": {
+          "color": "GOLD",
+          "description": "NA"
+        },
+        "IP001": {
+          "color": "LIMEGREEN",
+          "description": "PCF Internal (C-to-C)"
+        },
+        "IP004": {
+          "color": "MISTYROSE",
+          "description": "ESB - CTG Integration"
+        },
+        "IP003": {
+          "color": "LIGHTSKYBLUE",
+          "description": "ESB - MQ Integration"
+        },
+        "IP006": {
+          "color": "CORNFLOWERBLUE",
+          "description": "REST Service - ESB"
+        },
+        "IP005": {
+          "color": "CORNFLOWERBLUE",
+          "description": "ESB - REST Service"
+        },
+        "IP008": {
+          "color": "SALMON",
+          "description": "REST Service - SOAP Service"
+        },
+        "IP007": {
+          "color": "OLIVEDRAB",
+          "description": "REST Service - API"
+        },
+        "IP009": {
+          "color": "OLIVEDRAB",
+          "description": "API - REST Service"
+        }
+      }
+    }
+  }
+}
