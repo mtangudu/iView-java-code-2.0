@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -59,8 +60,10 @@ public class ExcelToJsonController {
 
 		try {
 			appProperties.load(propertiesInput);
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection("service_line");
 
