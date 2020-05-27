@@ -16,6 +16,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.bson.Document;
 import org.json.JSONObject;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -113,8 +114,10 @@ public class ExcelToJsonController {
 			fieldAppProperties.load(fieldpropertiesInput);
 			appProperties.load(propertiesInput);
 
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
 			//MessageProcessor.updateNFR((Map<String, Object>) updatedData.get("data"), 0);
@@ -161,7 +164,7 @@ public class ExcelToJsonController {
 	
 	@CrossOrigin(origins = "*")
 	@PostMapping("/update/{serviceLine}")
-	public String updateData( @RequestBody Map<String, Object> updatedData, @PathVariable  String  serviceLine) throws IOException {
+	public String updateRecord( @RequestBody Map<String, Object> updatedData, @PathVariable  String  serviceLine) throws IOException {
 		
 		log.info("Initiating the process ");
 		InputStream propertiesInput = ExcelToJsonController.class.getClassLoader()
@@ -171,13 +174,22 @@ public class ExcelToJsonController {
 		try {
 			appProperties.load(propertiesInput);
 
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
-			Map<String, Object> updatedDetails = (Map<String, Object>) updatedData.get("details");
-			updatedDetails.put("updatedTimeStamp", new Timestamp(System.currentTimeMillis()).toString());
+			Map<String, Object> updatedDetails = null;
 			try {
+				BasicDBObject whereQuery = new BasicDBObject();
+				whereQuery.put("_id",serviceLine);
+				FindIterable<Document> cursor = coll.find(whereQuery);
+
+				for (Document d : cursor) {
+					updatedDetails = (Map<String, Object>) d.get("details");
+				}
+				updatedDetails.replace("updatedTimeStamp", new Timestamp(System.currentTimeMillis()).toString());
 				coll.deleteOne(Filters.eq("_id", serviceLine));
 
 				Document doc = new Document();
@@ -243,7 +255,7 @@ public class ExcelToJsonController {
 		return JSONObject.quote("Successfully uploaded file : " + file.getOriginalFilename());
 	}
 
-	/*@CrossOrigin(origins = "*")
+	@CrossOrigin(origins = "*")
     @PostMapping("/saveAs/{id}")
     public ResponseEntity<String> saveAsData( @RequestBody Map<String, Object> updatedData, @PathVariable  String  id) throws IOException {
           log.info("uploading the file " + id);
@@ -258,7 +270,10 @@ public class ExcelToJsonController {
                               .getResourceAsStream("application.properties");
                  Properties appProperties = new Properties();                    
                  appProperties.load(propertiesInput);
-                 MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),new Integer(appProperties.getProperty("mongodb.port")));
+               //MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+     			//		new Integer(appProperties.getProperty("mongodb.port")));
+     			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+     			MongoClient mongoClient = new MongoClient(uri);
                  MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 
                  MongoCollection<Document> coll = db.getCollection("service_line");
@@ -279,6 +294,15 @@ public class ExcelToJsonController {
                        doc.append("_id", serviceLine);
                        doc.append("meta", mapper.convertValue(updatedData.get("meta"), Map.class));
                        doc.append("data", mapper.convertValue(updatedData.get("data"), Map.class));
+                       doc.append("details", mapper.convertValue(updatedData.get("details"), Map.class));
+                       
+				/*
+				 * Map<String, Object> details = new HashMap<String, Object>(); Timestamp
+				 * timestamp = new Timestamp(System.currentTimeMillis());
+				 * details.put("updatedTimeStamp", timestamp.toString());
+				 * details.put("isLocked", false); doc.append("details",
+				 * mapper.convertValue(details, Map.class));
+				 */
 
                        coll.insertOne(doc);
                        mongoClient.close();
@@ -291,9 +315,8 @@ public class ExcelToJsonController {
           }
           return ResponseEntity.ok().body(JSONObject.quote("Successfully added file : " + id));
     }
-*/
 	
-/*    @CrossOrigin(origins = "*")
+    @CrossOrigin(origins = "*")
     @PostMapping("/rename")
     public ResponseEntity<String> rename(@RequestParam("oldId") String oldId, @RequestParam("newId") String newId) throws IOException {
 		
@@ -301,7 +324,10 @@ public class ExcelToJsonController {
 				.getResourceAsStream("application.properties");
     	Properties appProperties = new Properties();			
 		appProperties.load(propertiesInput);
-    	MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),new Integer(appProperties.getProperty("mongodb.port")));
+		//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+		//		new Integer(appProperties.getProperty("mongodb.port")));
+		MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+		MongoClient mongoClient = new MongoClient(uri);
 		MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 
 		MongoCollection<Document> coll = db.getCollection("service_line");
@@ -332,6 +358,7 @@ public class ExcelToJsonController {
 				newDoc.append("_id", newId);
 				newDoc.append("meta",nc.get("meta"));
 				newDoc.append("data",nc.get("data"));
+				newDoc.append("details",nc.get("details"));
 				nodeColl.insertOne(newDoc);
 			}
 			
@@ -347,7 +374,7 @@ public class ExcelToJsonController {
 		}
           
     }
-*/    
+    
     @CrossOrigin(origins = "*")
     @GetMapping("/newDocument")
     public ResponseEntity<String> newTemplate() throws IOException {
@@ -358,7 +385,10 @@ public class ExcelToJsonController {
 		appProperties.load(propertiesInput);
 		ObjectMapper mapper = new ObjectMapper();
 		
-    	MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),new Integer(appProperties.getProperty("mongodb.port")));
+		//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+		//		new Integer(appProperties.getProperty("mongodb.port")));
+		MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+		MongoClient mongoClient = new MongoClient(uri);
 		MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 
 		MongoCollection<Document> coll = db.getCollection("service_line");
@@ -399,7 +429,7 @@ public class ExcelToJsonController {
 		newDoc.append("_id", DocId);
 		newDoc.append("meta", metaDataMap);
 		newDoc.append("data", mapper.convertValue(nodeData, Map.class));
-		doc.append("details", mapper.convertValue(addDetails, Map.class));
+		newDoc.append("details", mapper.convertValue(addDetails, Map.class));
 		nodeColl.insertOne(newDoc);
 
 		mongoClient.close();
@@ -430,8 +460,10 @@ public class ExcelToJsonController {
 		try {
 			appProperties.load(propertiesInput);
 
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
 
@@ -474,8 +506,10 @@ public class ExcelToJsonController {
 		try {
 			appProperties.load(propertiesInput);
 
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
 
@@ -539,8 +573,10 @@ public class ExcelToJsonController {
 		try {
 			appProperties.load(propertiesInput);
 
-			MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-					new Integer(appProperties.getProperty("mongodb.port")));
+			//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+			//		new Integer(appProperties.getProperty("mongodb.port")));
+			MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+			MongoClient mongoClient = new MongoClient(uri);
 			MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
 			MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
 
