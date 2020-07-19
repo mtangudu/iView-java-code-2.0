@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -44,27 +45,27 @@ public class MessageProcessor {
 	public static LinkedHashMap<String, Object> updateNFR (Properties appProperties, LinkedHashMap<String, Object> nodeData,Map<String, Integer> countMap ){
 		ArrayList<LinkedHashMap<String, Object>> children = (ArrayList<LinkedHashMap<String, Object>>) nodeData.get("children");
 		countMap.put("count",countMap.get("count") + 1);
-		
-		for (LinkedHashMap<String, Object> c : children)
-		{
-			int cb = isChildAvailable(c);
-			if (cb == 1){
-				updateNFR(appProperties, c, countMap );
+		if (children != null)
+			for (LinkedHashMap<String, Object> c : children)
+			{
+				int cb = isChildAvailable(c);
+				if (cb == 1){
+					updateNFR(appProperties, c, countMap );
+				}
+				else{
+					LinkedHashMap<String, Object> nd = (LinkedHashMap<String, Object>) c.get(appProperties.get("text.data.details"));
+					int timeOfFun = Calculate.getTimeOfFunction(appProperties, c);
+					int totalProcessTime = timeOfFun *Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.countOfInvocations"))) ;
+					int totalProcessNFR = Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.countOfInvocations")))
+							* Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.ProcessNFR")));
+					nd.put((String) appProperties.get("text.data.details.timeOfFuncation"), String.valueOf(timeOfFun));
+					nd.put((String) appProperties.get("text.data.details.totalProcessTime"), String.valueOf(totalProcessTime));
+					nd.put((String) appProperties.get("text.data.details.totalProcessPathLength"), String.valueOf(totalProcessTime));
+					nd.put((String) appProperties.get("text.data.details.totalProcessNFR"), String.valueOf(totalProcessNFR));
+					nd.put((String) appProperties.get("text.data.details.totalProcessPathLengthNFR"), String.valueOf(totalProcessNFR));				
+					c.put((String) appProperties.get("text.data.details"), nd);
+				}
 			}
-			else{
-				LinkedHashMap<String, Object> nd = (LinkedHashMap<String, Object>) c.get(appProperties.get("text.data.details"));
-				int timeOfFun = Calculate.getTimeOfFunction(appProperties, c);
-				int totalProcessTime = timeOfFun *Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.countOfInvocations"))) ;
-				int totalProcessNFR = Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.countOfInvocations")))
-						* Calculate.convertStringToInt(nd.get(appProperties.get("text.data.details.ProcessNFR")));
-				nd.put((String) appProperties.get("text.data.details.timeOfFuncation"), String.valueOf(timeOfFun));
-				nd.put((String) appProperties.get("text.data.details.totalProcessTime"), String.valueOf(totalProcessTime));
-				nd.put((String) appProperties.get("text.data.details.totalProcessPathLength"), String.valueOf(totalProcessTime));
-				nd.put((String) appProperties.get("text.data.details.totalProcessNFR"), String.valueOf(totalProcessNFR));
-				nd.put((String) appProperties.get("text.data.details.totalProcessPathLengthNFR"), String.valueOf(totalProcessNFR));				
-				c.put((String) appProperties.get("text.data.details"), nd);
-			}
-		}
 		Map<String, Integer> cm = new LinkedHashMap<String, Integer>();
 		cm.put("count", 1);
 		return updateNFRAtLocation(appProperties, nodeData, countMap.get("count")-1,cm );
@@ -331,9 +332,14 @@ public class MessageProcessor {
 				try { // insert service line 
 					appProperties.load(propertiesInput);
 
-					MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-							new Integer(appProperties.getProperty("mongodb.port")));
+					//MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
+						//	new Integer(appProperties.getProperty("mongodb.port")));
+					//MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
+					
+					MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+					MongoClient mongoClient = new MongoClient(uri);
 					MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
+					
 					//collection name 
 					MongoCollection<Document> coll = db.getCollection("service_line");
 
@@ -354,9 +360,17 @@ public class MessageProcessor {
 				try {
 					appProperties.load(propertiesInput);
 
-					MongoClient mongoClient = new MongoClient(appProperties.getProperty("mongodb.host"),
-							new Integer(appProperties.getProperty("mongodb.port")));
+					/*
+					 * MongoClient mongoClient = new
+					 * MongoClient(appProperties.getProperty("mongodb.host"), new
+					 * Integer(appProperties.getProperty("mongodb.port"))); MongoDatabase db =
+					 * mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
+					 */
+					
+					MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+					MongoClient mongoClient = new MongoClient(uri);
 					MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
+					
 					MongoCollection<Document> coll = db.getCollection(appProperties.getProperty("mongodb.collection"));
 
 					coll.deleteOne(Filters.eq("_id", serviceLine));
