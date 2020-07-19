@@ -441,11 +441,46 @@ public class ExcelToJsonController {
     
 	@CrossOrigin(origins = "*")
 	@GetMapping("/delete")
-	public String deleteData() {
+	public ResponseEntity<String> deleteData(@RequestParam("Id") String Id) throws IOException {
 
-		return "No Logic implemented!!";
+    	InputStream propertiesInput = ExcelToJsonController.class.getClassLoader()
+				.getResourceAsStream("application.properties");
+    	Properties appProperties = new Properties();			
+		appProperties.load(propertiesInput);
+
+		MongoClientURI uri = new MongoClientURI(appProperties.getProperty("mongodb.host"));
+		MongoClient mongoClient = new MongoClient(uri);
+		MongoDatabase db = mongoClient.getDatabase(appProperties.getProperty("mongodb.db"));
+
+		MongoCollection<Document> coll = db.getCollection("service_line");
+		BasicDBObject whereQuery = new BasicDBObject();
+		whereQuery.put("_id",Id);
+		FindIterable<Document> cursor = coll.find(whereQuery);
+    	
+		if(cursor.first() != null) {
+	
+			//deleting old record
+			coll.deleteOne(Filters.eq("_id", Id));
+			
+			MongoCollection<Document> nodeColl = db.getCollection(appProperties.getProperty("mongodb.collection"));
+			BasicDBObject query = new BasicDBObject();
+			query.put("_id",Id);
+			FindIterable<Document> nodeCursor = nodeColl.find(query);
+			
+			nodeColl.deleteOne(Filters.eq("_id", Id));
+			
+			mongoClient.close();
+			
+			return ResponseEntity.ok().body(JSONObject.quote("Successfully deleted file : " + Id ));
+			
+		}else {
+			mongoClient.close();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid document Id.");
+		}
+		
 
 	}
+
 
 	@CrossOrigin(origins = "*")
 	@GetMapping("/fetch/{serviceLine}")
